@@ -5,62 +5,133 @@ using DG.Tweening;
 using TMPro;
 
 using UnityEngine;
+using UnityEngine.Events;
 using UnityEngine.UI;
 
 [RequireComponent(typeof(Rigidbody))]
 public class PlayerView : MonoBehaviour
 {
+    [Header("Components")]
     private Rigidbody rb;
-    private PlayerController controller;
-    [SerializeField] private PlayerData data;
+    [SerializeField] private GameObject myCamera;
+
+    [Header("UI Elements")]
     public TextMeshProUGUI currentForce;
     public Slider healthSlider;
-    float verticalInput = 0;
-    PlayerState playerState = PlayerState.Moving;
+
+    [Header("Movement Constraints")]
+    [SerializeField] private float maxHorizontalPosition = 5f;
+    [SerializeField] private float minHorizontalPosition = -5f;
+
+    private PlayerController controller;
+    private PlayerData data;
+    private bool canMoveForward = false;
+    // Track shift key state to handle press/release properly
+    private bool wasShiftPressed = false;
+
+
+    // Cache the transform to avoid repeated GetComponent calls
+    private Transform cachedTransform;
+
+    public static UnityAction<Camera> OnPlayerCameraActivated;
+
+    // Property to check if forward movement is enabled
+    public bool CanMoveForward => canMoveForward;
+
     private void Awake()
     {
         rb = GetComponent<Rigidbody>();
-        //data = new PlayerData(); // You might want to inject this from elsewhere
-        controller = new PlayerController(this, data);
+        cachedTransform = transform;
     }
 
-    public void InitializePlayer(PlayerData data)
+    public void InitializePlayer(PlayerController controller, PlayerData data)
     {
-        healthSlider.SetValueWithoutNotify(data.Health);
-        healthSlider.maxValue = data.Health;
+        this.controller = controller;
+        this.data = data;
+
+        // Initialize UI
+        healthSlider.maxValue = data.maxHealth;
+        healthSlider.value = data.health;
         currentForce.text = data.baseForce.ToString();
+
+        // Reset forward movement permission
+        canMoveForward = false;
     }
 
     private void Update()
     {
-        if (Input.GetKeyUp(KeyCode.LeftShift))
+        HandleInput();
+        HandleMovement();
+    }
+
+    private void HandleInput()
+    {
+        // Handle force reset input
+        if (controller?.GetPlayerState() != PlayerState.Idle && Input.GetKeyUp(KeyCode.LeftShift))
         {
-            controller.ResetAddedForce();
+            controller?.ResetAddedForce();
         }
-        switch (playerState)
+        HandleShiftInput();
+    }
+
+    private void HandleShiftInput()
+    {
+        bool isShiftCurrentlyPressed = Input.GetKey(KeyCode.LeftShift);
+
+        // Detect shift press (transition from not pressed to pressed)
+        if (isShiftCurrentlyPressed && !wasShiftPressed)
+        {
+            controller?.OnShiftPressed();
+            wasShiftPressed = true;
+        }
+        // Detect shift release (transition from pressed to not pressed)
+        else if (!isShiftCurrentlyPressed && wasShiftPressed)
+        {
+            controller?.OnShiftReleased();
+            wasShiftPressed = false;
+        }
+    }
+
+    private void HandleMovement()
+    {
+        PlayerState currentState = controller?.GetPlayerState() ?? PlayerState.Idle;
+
+        switch (currentState)
         {
             case PlayerState.Moving:
-                {
-                    while (verticalInput < 0.999f)
-                        verticalInput += 0.01f;
-                    controller.HandleMovement(GetHorizontalMovement(), verticalInput);
-                    if (Input.GetKey(KeyCode.LeftShift))
-                    {
-                        controller.AddForceAndConsumeHealth();
-                    }
-                    break;
-                }
-            case PlayerState.Collision:
-                {
-                    break;
-                }
+                HandleMovingState();
+                break;
             case PlayerState.Pushback:
-                {
-                    controller.HandleMovement(GetHorizontalMovement(), 0);
-                    break;
-                }
+                HandlePushbackState();
+                break;
+            case PlayerState.Collision:
+                // No movement during collision
+                break;
         }
+    }
 
+    private void HandleMovingState()
+    {
+        float horizontalInput = GetHorizontalMovement();
+        float verticalInput = canMoveForward ? 1f : 0f;
+        controller.HandleMovement(horizontalInput, verticalInput);
+
+        // Handle force addition input
+        if (Input.GetKey(KeyCode.LeftShift))
+        {
+            controller.AddForceAndConsumeHealth();
+        }
+    }
+
+    private void HandlePushbackState()
+    {
+        if (Input.GetKey(KeyCode.LeftShift))
+        {
+            controller.AddForceAndConsumeHealth();
+        }
+        float horizontalInput = GetHorizontalMovement();
+        DisableForwardMovement();
+        controller.HandleMovement(horizontalInput, 0);
     }
 
     internal float GetHorizontalMovement()
@@ -72,46 +143,85 @@ public class PlayerView : MonoBehaviour
     {
         IObstacle obstacle = collision.gameObject.GetComponent<IObstacle>();
         if (obstacle != null)
-            controller.OnCollisionWithObstacle(collision.gameObject.GetComponent<IObstacle>());
+        {
+            controller.OnCollisionWithObstacle(obstacle);
+        }
     }
 
     public void Move(Vector3 movement)
     {
-        // Using velocity for smooth movement
-        rb.linearVelocity = new Vector3(movement.x, rb.linearVelocity.y, movement.z);
+        // Apply horizontal position constraints
+        Vector3 newPosition = cachedTransform.position + movement * Time.deltaTime;
+        newPosition.x = Mathf.Clamp(newPosition.x, minHorizontalPosition, maxHorizontalPosition);
+
+        // Use velocity for smooth movement with clamped horizontal position
+        Vector3 clampedMovement = new Vector3(
+            (newPosition.x - cachedTransform.position.x) / Time.deltaTime,
+            0f,
+            movement.z
+        );
+
+        rb.linearVelocity = new Vector3(clampedMovement.x, rb.linearVelocity.y, clampedMovement.z);
     }
 
-    internal void UpdateHealthSlider(float v, bool instant = true)
+    internal void UpdateHealthSlider(float value, bool instant = true)
     {
         if (instant)
         {
-            healthSlider.value += v;
+            healthSlider.value = Mathf.Clamp(healthSlider.value + value, 0, healthSlider.maxValue);
         }
         else
         {
-            float initialValue = healthSlider.value;
-            healthSlider.DOValue(healthSlider.value + v, 0.5f).SetEase(Ease.Linear);
+            float targetValue = Mathf.Clamp(healthSlider.value + value, 0, healthSlider.maxValue);
+            healthSlider.DOValue(targetValue, 0.5f).SetEase(Ease.Linear);
         }
+
+        // Debug to track UI updates
+        //Debug.Log($"Health UI updated: {healthSlider.value}/{healthSlider.maxValue}");
     }
 
-    internal void PushBack()
+    internal void PushBack(Action onComplete)
     {
-        SetState(PlayerState.Pushback);
-        transform.DOMoveZ(transform.position.z - data.pushbackDistance, 1f, false).OnComplete(() => SetState(PlayerState.Moving));
-    }
-
-    internal void SetState(PlayerState state)
-    {
-        playerState = state;
+        cachedTransform.DOMoveZ(cachedTransform.position.z - data.pushbackDistance, 1f, false)
+            .OnComplete(() => onComplete?.Invoke());
     }
 
     internal void UpdateForceText(float force)
     {
         currentForce.text = force.ToString("00.00");
     }
+
+    internal void Deactivate()
+    {
+        gameObject.SetActive(false);
+    }
+
+    internal void Activate()
+    {
+        gameObject.SetActive(true);
+    }
+
+    // Method to enable forward movement (call this when your timer completes)
+    public void EnableForwardMovement()
+    {
+        canMoveForward = true;
+    }
+
+    // Method to disable forward movement
+    public void DisableForwardMovement()
+    {
+        canMoveForward = false;
+    }
+
+    internal void UpdateCamera()
+    {
+        OnPlayerCameraActivated?.Invoke(myCamera.GetComponent<Camera>());
+    }
+
+
 }
 
 public enum PlayerState
 {
-    Moving, Collision, Pushback
+    Idle, Moving, Collision, Pushback
 }
