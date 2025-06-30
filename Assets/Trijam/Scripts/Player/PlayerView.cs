@@ -23,6 +23,9 @@ public class PlayerView : MonoBehaviour
     [SerializeField] private float maxHorizontalPosition = 5f;
     [SerializeField] private float minHorizontalPosition = -5f;
 
+    [Header("Animation")]
+    private PlayerLegAnimator legAnimator;
+
     private PlayerController controller;
     private PlayerData data;
     private bool canMoveForward = false;
@@ -40,18 +43,28 @@ public class PlayerView : MonoBehaviour
 
     private Vector3 initialPosition;
 
+
+
     private void Awake()
     {
         rb = GetComponent<Rigidbody>();
         cachedTransform = transform;
         initialPosition = transform.localPosition;
+
+        // Get or add the leg animator component
+        legAnimator = GetComponent<PlayerLegAnimator>();
+        if (legAnimator == null)
+        {
+            legAnimator = gameObject.AddComponent<PlayerLegAnimator>();
+        }
+
     }
 
     public void InitializePlayer(PlayerController controller, PlayerData data)
     {
         this.controller = controller;
         this.data = data;
-
+        legAnimator.SetupController(controller);
         // Initialize UI
         ResetPlayerView(data);
         // Reset forward movement permission
@@ -82,14 +95,27 @@ public class PlayerView : MonoBehaviour
         if (isShiftCurrentlyPressed && !wasShiftPressed)
         {
             controller?.OnShiftPressed();
+            legAnimator?.OnBoostStart(); // Start boost leg animation
             wasShiftPressed = true;
         }
         // Detect shift release (transition from pressed to not pressed)
         else if (!isShiftCurrentlyPressed && wasShiftPressed)
         {
             controller?.OnShiftReleased();
+            legAnimator?.OnBoostEnd(); // End boost leg animation
             wasShiftPressed = false;
         }
+    }
+
+    // Optional: Add methods to manually control leg animations
+    public void StartLegWalkAnimation()
+    {
+        legAnimator?.StartWalking();
+    }
+
+    public void StopLegWalkAnimation()
+    {
+        legAnimator?.StopWalking();
     }
 
     private void HandleMovement()
@@ -197,6 +223,7 @@ public class PlayerView : MonoBehaviour
     {
         gameObject.SetActive(false);
         wasShiftPressed = false;
+        legAnimator?.StopWalking(); // Stop any ongoing animations
     }
 
     internal void Activate()

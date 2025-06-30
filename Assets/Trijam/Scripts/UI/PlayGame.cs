@@ -26,17 +26,17 @@ public class PlayGame : MonoBehaviour
     }
     private void OnEnable()
     {
-        levelBuilder.OnLevelGenerated += OnLevelGenerated;
+        if (levelBuilder != null) levelBuilder.OnLevelGenerated += OnLevelGenerated;
         PlayerController.OnPlayerDied += OnPlayerDied;
-        button.onClick.AddListener(OnClick);
+        if (button != null) button.onClick.AddListener(OnClick);
     }
 
     private void OnDisable()
     {
-        levelBuilder.OnLevelGenerated -= OnLevelGenerated;
+        if (levelBuilder != null) levelBuilder.OnLevelGenerated -= OnLevelGenerated;
         PlayerController.OnPlayerDied -= OnPlayerDied;
 
-        button.onClick.RemoveListener(OnClick);
+        if (button != null) button.onClick.RemoveListener(OnClick);
     }
 
     private void Start()

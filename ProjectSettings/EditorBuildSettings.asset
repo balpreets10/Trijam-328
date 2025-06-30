@@ -5,7 +5,7 @@ EditorBuildSettings:
   m_ObjectHideFlags: 0
   serializedVersion: 2
   m_Scenes:
-  - enabled: 1
+  - enabled: 0
     path: Assets/Trijam/Scenes/Boot.unity
     guid: 06a62f8be2026b14f97b62980f4edfc4
   - enabled: 1
