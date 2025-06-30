@@ -18,12 +18,15 @@ public class PlayerManager : MonoBehaviour
 
     public PlayerController GetPlayerController()
     {
-        playerController = new PlayerController(playerView, playerData);
+        if (playerController == null)
+            playerController = new PlayerController(playerView, playerData);
         return playerController;
     }
 
     internal void SetPlayerData(PlayerData playerData)
     {
         this.playerData = playerData;
+        if (playerController != null)
+            playerController.ResetPlayer(playerData);
     }
 }

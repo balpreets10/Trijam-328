@@ -14,16 +14,20 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   levelNumber: 1
   levelLength: 100
-  levelName: Level 1
+  levelName: Level 1 - Easy Challenge
+  rowSpacing: 19.8
+  segmentLength: 12.1
   difficulty: 0
   playerData:
-    baseForce: 10
-    maxHealth: 100
-    healthToPowerRatio: 2
-    health: 6.9614897
+    baseForce: 10.5
+    maxHealth: 105
+    healthToPowerRatio: 2.05
+    health: 105
     pushbackDistance: 3
-    movementSpeed: 10
+    movementSpeed: 5.1
     addedForce: 0
+    boostDuration: 1
+    forceDecaySpeed: 5
     addForceFactor: 0.01
   obstaclePatterns: []
   difficultyProgression:
@@ -63,4 +67,4 @@ MonoBehaviour:
     destructionVariance: 0.3
     recommendedHealthUsage: 0.3
     ensureBeatable: 1
-  baseObstacleWidth: 1.8
+  baseObstacleWidth: 1.49

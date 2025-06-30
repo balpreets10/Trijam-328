@@ -1,0 +1,52 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2f83f530abd4d634b94765750861eea0, type: 3}
+  m_Name: Level_02_Easy
+  m_EditorClassIdentifier: 
+  levelNumber: 2
+  levelLength: 100
+  levelName: Level 2 - Easy
+  rowSpacing: 19.6
+  segmentLength: 12.2
+  difficulty: 0
+  playerData:
+    baseForce: 11
+    maxHealth: 110
+    healthToPowerRatio: 2.1
+    health: 110
+    pushbackDistance: 3
+    movementSpeed: 10
+    addedForce: 0
+    boostDuration: 1
+    forceDecaySpeed: 5
+    addForceFactor: 0.01
+  obstaclePatterns: []
+  difficultyProgression:
+    serializedVersion: 2
+    m_Curve: []
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  useDynamicGeneration: 1
+  generationFormula:
+    baseDifficulty: 1
+    difficultyMultiplier: 0.3
+    maxDifficulty: 10
+    baseObstacleDensity: 0.1
+    densityGrowthRate: 0.05
+    maxObstacleDensity: 0.9
+    baseDestructionValue: 5
+    destructionGrowthRate: 1.5
+    destructionVariance: 0.3
+    recommendedHealthUsage: 0.3
+    ensureBeatable: 1
+  baseObstacleWidth: 1.48

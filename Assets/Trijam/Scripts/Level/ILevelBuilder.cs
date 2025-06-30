@@ -5,6 +5,7 @@ using UnityEngine;
 public interface ILevelBuilder
 {
     void GenerateLevel(int levelNumber);
+    void ActivateLevel(int levelNumber);
     void ClearLevel();
     event System.Action<int> OnLevelGenerated;
 }

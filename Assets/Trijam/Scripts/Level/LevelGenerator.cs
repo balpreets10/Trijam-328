@@ -39,8 +39,6 @@ public class LevelGenerator : ILevelGenerator
 
         Debug.Log($"Generating Level {levelNumber} - Difficulty: {difficulty:F2}, Density: {obstacleDensity:F3}");
 
-        // Use fixed segment size for more consistent distribution
-        float segmentLength = 8f; // Consistent segment size
         float currentZ = 2f; // Start obstacles closer to player spawn
 
         while (currentZ < levelData.levelLength)
@@ -50,10 +48,10 @@ public class LevelGenerator : ILevelGenerator
 
             if (forceObstacle || UnityEngine.Random.value < obstacleDensity)
             {
-                obstacles.AddRange(GenerateObstacleSegment(currentZ, segmentLength, levelNumber, difficulty, recommendedForce, levelData));
+                obstacles.AddRange(GenerateObstacleSegment(currentZ, levelData.segmentLength, levelNumber, difficulty, recommendedForce, levelData));
             }
 
-            currentZ += segmentLength;
+            currentZ += levelData.segmentLength;
         }
 
         return obstacles;
@@ -76,46 +74,15 @@ public class LevelGenerator : ILevelGenerator
         return obstacles;
     }
 
-    //private List<ObstacleData> GenerateRandomObstacles(float startZ, float length, int level, float difficulty, float recommendedForce, LevelData levelData)
-    //{
-    //    var obstacles = new List<ObstacleData>();
-    //    // Ensure minimum obstacle count per segment for consistent distribution
-    //    int baseObstacleCount = Mathf.Max(1, Mathf.RoundToInt(length * 0.2f)); // At least 1 obstacle per segment
-    //    int difficultyBonus = Mathf.RoundToInt(difficulty * 0.5f);
-    //    int obstacleCount = baseObstacleCount + difficultyBonus;
-
-    //    // Distribute obstacles evenly within the segment
-    //    for (int i = 0; i < obstacleCount; i++)
-    //    {
-    //        // Use more even distribution instead of pure random
-    //        float segmentProgress = (i + 0.5f) / obstacleCount; // Center obstacles in subsegments
-    //        float randomOffset = UnityEngine.Random.Range(-0.3f, 0.3f) * (length / obstacleCount);
-    //        float z = startZ + (segmentProgress * length) + randomOffset;
-
-    //        // Clamp to segment bounds
-    //        z = Mathf.Clamp(z, startZ, startZ + length);
-
-    //        float x = UnityEngine.Random.Range(-4f, 4f);
-
-    //        ObstacleData obstacleData = CreateRandomObstacle(level, difficulty, recommendedForce, levelData);
-    //        obstacleData.position = new Vector3(x, 0, z);
-    //        obstacles.Add(obstacleData);
-    //    }
-
-    //    return obstacles;
-    //}
-
     private List<ObstacleData> GenerateRandomObstacles(float startZ, float length, int level, float difficulty, float recommendedForce, LevelData levelData)
     {
         var obstacles = new List<ObstacleData>();
 
         // Generate rows of obstacles instead of random placement
-        float rowSpacing = 20f; // Distance between rows
-        int rowCount = Mathf.Max(1, Mathf.RoundToInt(length / rowSpacing));
-
+        int rowCount = Mathf.Max(1, Mathf.RoundToInt(length / levelData.rowSpacing));
         for (int row = 0; row < rowCount; row++)
         {
-            float rowZ = startZ + (row * rowSpacing);
+            float rowZ = startZ + (row * levelData.rowSpacing);
             if (rowZ >= startZ + length) break;
 
             obstacles.AddRange(GenerateObstacleRow(rowZ, level, difficulty, recommendedForce, levelData));
@@ -295,7 +262,7 @@ public class LevelGenerator : ILevelGenerator
             type = ObstacleType.FinishLine,
             position = new Vector3(0, 0, levelLength - 2f), // Place 2 units before the end
             destructionValue = 0f,
-            width = 8f, // Make it wide so player can't miss it
+            width = 12f, // Make it wide so player can't miss it
             height = 3f,
             isDestructible = false,
             obstacleColor = _colorProvider.GetFinishLineColor()

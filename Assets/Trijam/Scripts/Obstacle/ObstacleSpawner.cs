@@ -38,5 +38,7 @@ public interface IObstacleSpawner
 
     void ClearAllObstacles();
 
+
+
 }
 

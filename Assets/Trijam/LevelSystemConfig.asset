@@ -15,8 +15,36 @@ MonoBehaviour:
   obstaclePrefabs:
   - {fileID: 4467045686062794726, guid: 345f4c4eca5448f44b05c23f88bbbaf3, type: 3}
   - {fileID: 3339945113388967174, guid: 5faaf555d6ca42140bbee0ee9cb8b31c, type: 3}
-  - {fileID: 1507197114380178891, guid: 06fa9b2b4b68e884cbcbd543d7aa7a7e, type: 3}
   defaultLevelData: {fileID: 11400000, guid: 6379a502351190c45ab2b37f27b71b1b, type: 2}
   levelDataAssets:
-  - {fileID: 11400000, guid: 6379a502351190c45ab2b37f27b71b1b, type: 2}
+  - {fileID: 11400000, guid: 4f8c20a90cdae184ab9359c4eb66d195, type: 2}
+  - {fileID: 11400000, guid: 669d13e66bfcab04abd8b7ea2854f38b, type: 2}
+  - {fileID: 11400000, guid: 2c139079b079dbd43bd64d7655e77c51, type: 2}
+  - {fileID: 11400000, guid: 37855fcc5f6dc2f48a331439d0f803f7, type: 2}
+  - {fileID: 11400000, guid: 16e51f90b394a3e439ecdb48d6109b91, type: 2}
+  - {fileID: 11400000, guid: 2fbc494bda8bfb648a4b69415644020c, type: 2}
+  - {fileID: 11400000, guid: 2e24ce583acd3354f83f3bc77756c182, type: 2}
+  - {fileID: 11400000, guid: e802d8e870909b54a94279e17fbb93ef, type: 2}
+  - {fileID: 11400000, guid: 98c4e61912aa4864a90210bc0fd29b3d, type: 2}
+  - {fileID: 11400000, guid: 61ce3ddd7a1270f4180e2c498d8720ce, type: 2}
+  - {fileID: 11400000, guid: 9e1c1852bf8f97c49b650f1143fc250d, type: 2}
+  - {fileID: 11400000, guid: ba8f611facc20164aa8289b1acc2487e, type: 2}
+  - {fileID: 11400000, guid: 808e30cbea7f16e429a9d2237e48a58c, type: 2}
+  - {fileID: 11400000, guid: 2b613123bf754914180b3fb79f959d5d, type: 2}
+  - {fileID: 11400000, guid: 59b4dda5c7f6b8645b9b749b9ed31886, type: 2}
+  - {fileID: 11400000, guid: f4fd88e59489c7e458cad7f7571d095d, type: 2}
+  - {fileID: 11400000, guid: 934cc16a2e3c14c4c90f5b6ba44b6592, type: 2}
+  - {fileID: 11400000, guid: 76e67b2d5095f904dbdfa86d4a300a8a, type: 2}
+  - {fileID: 11400000, guid: 39bbb6e652482ad408e8a1d64620afda, type: 2}
+  - {fileID: 11400000, guid: 07c2e93bbb932ae4d811d492c01944ce, type: 2}
+  - {fileID: 11400000, guid: cb93259dadd2bd04684aabc377076825, type: 2}
+  - {fileID: 11400000, guid: 43934b6cba2e2c045b4ac99d19457792, type: 2}
+  - {fileID: 11400000, guid: 9abb8379f9e17b34d8adf1df20e00a1c, type: 2}
+  - {fileID: 11400000, guid: 4eea1f9146cad2f4db35a09f635ee783, type: 2}
+  - {fileID: 11400000, guid: 5d2141ef27e156d4b9f28e2d7ce2beb7, type: 2}
+  - {fileID: 11400000, guid: 8fc512cbc098d8044ba147ab106a76c5, type: 2}
+  - {fileID: 11400000, guid: d18cc8f65d099d749a00ee87078da1e9, type: 2}
+  - {fileID: 11400000, guid: fc68b55f337f0ad4a9fbf01ed61f4e63, type: 2}
+  - {fileID: 11400000, guid: 7ad7466a1f132aa4ba3974c36f294a85, type: 2}
   levelParentName: LevelParent
+  PooledObjectsHolderName: PooledObjectHolder

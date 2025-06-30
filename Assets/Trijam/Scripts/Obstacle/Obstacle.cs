@@ -3,37 +3,99 @@ using System;
 using TMPro;
 
 using UnityEngine;
+using UnityEngine.Events;
 using UnityEngine.UI;
 
 [RequireComponent(typeof(Collider))]
 public class Obstacle : MonoBehaviour, IObstacle
 {
+    [Header("Basic Properties")]
     public float destructionValue = 10f;
     public bool isDestructible = true;
     public float healthReductionValue;
+
+    [Header("UI Components")]
     public TextMeshProUGUI destructionText;
     public Canvas canvas;
     public Collider obstacleCollider;
 
+    [Header("Obstacle Configuration")]
     public ObstacleType obstacleType;
-    public static event System.Action OnLevelCompleted;
+
+    // Composition system - behavior component
+    private IObstacleBehavior behaviorComponent;
+
+    // Events
+    public static event Action OnLevelCompleted;
+    public static event Action<Obstacle> OnObstacleCleared;
+
+    // Interface implementation
     GameObject IObstacle.gameObject { get => gameObject; set => Debug.Log("Can't set gameobject value"); }
 
+
+    private void Awake()
+    {
+        // Get behavior component based on obstacle type
+        behaviorComponent = GetBehaviorComponent();
+    }
     public void Initialize()
     {
         if (canvas == null) canvas = GetComponentInChildren<Canvas>();
         if (destructionText == null) destructionText = GetComponentInChildren<TextMeshProUGUI>();
         if (obstacleCollider == null) obstacleCollider = GetComponentInChildren<Collider>();
         obstacleCollider.enabled = true;
-        AddListeners();
+
+        behaviorComponent?.Initialize(this);
     }
+
+    private void Update()
+    {
+        // Let behavior component handle continuous updates
+        behaviorComponent?.UpdateBehavior();
+    }
+
+    private IObstacleBehavior GetBehaviorComponent()
+    {
+        // Try to get existing behavior component first
+        IObstacleBehavior behavior = GetComponent<IObstacleBehavior>();
+        if (behavior != null) return behavior;
+
+        // If no behavior component exists, add one based on obstacle type
+        switch (obstacleType)
+        {
+            case ObstacleType.Wall:
+                return gameObject.AddComponent<WallBehavior>();
+            case ObstacleType.Barrier:
+                return gameObject.AddComponent<BarrierBehavior>();
+            case ObstacleType.Explosive:
+                return gameObject.AddComponent<ExplosiveBehavior>();
+            case ObstacleType.MovingBlock:
+                return gameObject.AddComponent<MovingBlockBehavior>();
+            case ObstacleType.Spike:
+                return gameObject.AddComponent<SpikeBehavior>();
+            case ObstacleType.PowerUp:
+                return gameObject.AddComponent<PowerupBehavior>();
+            case ObstacleType.HealthOrb:
+                return gameObject.AddComponent<HealthOrbBehavior>();
+            case ObstacleType.FinishLine:
+                return gameObject.AddComponent<FinishLineBehavior>();
+            default:
+                return gameObject.AddComponent<WallBehavior>();
+        }
+    }
+
     public bool TryDestroy()
     {
         if (!isDestructible) return false;
-        obstacleCollider.enabled = false;
-        gameObject.SetActive(false);
-
+        Disable();
         return true;
+    }
+
+    private void Disable()
+    {
+        gameObject.SetActive(false);
+        obstacleCollider.enabled = false;
+
     }
 
     public float GetDestructionForce()
@@ -53,35 +115,7 @@ public class Obstacle : MonoBehaviour, IObstacle
             destructionText.text = "Finish";
             return;
         }
-        destructionText.text = destructionValue.ToString("00.0");
-    }
-
-    internal void SetupCamera(Camera camera)
-    {
-        RectTransform canvasRect = canvas.GetComponent<RectTransform>();
-
-        // Reset the canvas transform relative to parent
-        canvasRect.localPosition = Vector3.zero;
-        canvasRect.localRotation = Quaternion.identity;
-
-        // Set appropriate scale (World Space canvases are huge by default)
-        canvasRect.localScale = new Vector3(0.01f, 0.01f, 0.01f);
-
-        // Position it slightly in front of the object
-        canvasRect.localPosition = new Vector3(0, 0, -1f);
-
-        // Make it face the camera
-        canvas.worldCamera = camera;
-    }
-
-    private void AddListeners()
-    {
-        PlayerView.OnPlayerCameraActivated += OnCameraActivated;
-    }
-
-    private void OnCameraActivated(Camera camera)
-    {
-        SetupCamera(camera);
+        destructionText.text = destructionValue.ToString("00");
     }
 
     private void OnCollisionEnter(UnityEngine.Collision collision)
@@ -93,6 +127,14 @@ public class Obstacle : MonoBehaviour, IObstacle
         }
     }
 
+    private void OnTriggerEnter(Collider other)
+    {
+        if (other.CompareTag("Player"))
+        {
+            behaviorComponent?.OnPlayerTrigger(other);
+        }
+    }
+
     public ObstacleType GetObstacleType()
     {
         return obstacleType;
@@ -101,6 +143,21 @@ public class Obstacle : MonoBehaviour, IObstacle
     public void SetObstacleType(ObstacleType obstacleType)
     {
         this.obstacleType = obstacleType;
+
+        if (Application.isPlaying)
+        {
+            behaviorComponent = GetBehaviorComponent();
+            behaviorComponent?.Initialize(this);
+        }
     }
+}
+
+// Base interface for obstacle behaviors
+public interface IObstacleBehavior
+{
+    void Initialize(Obstacle obstacle);
+    void OnPlayerCollision(Collider playerCollider);
+    void OnPlayerTrigger(Collider playerCollider);
+    void UpdateBehavior();
 }
 

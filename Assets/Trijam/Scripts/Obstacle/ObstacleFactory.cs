@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -16,9 +17,33 @@ public class ObstacleFactory : IObstacleFactory
         this.parent = parent;
         this.obstaclePools = new Dictionary<ObstacleType, Queue<GameObject>>();
         this.activeObstacles = new HashSet<GameObject>();
-
+        AddListeners();
         InitializePools();
     }
+
+    private void AddListeners()
+    {
+        //Obstacle.OnObstacleCleared += OnObstacleCleared;
+    }
+
+    private void RemoveListeners()
+    {
+        //Obstacle.OnObstacleCleared -= OnObstacleCleared;
+    }
+
+    //private void OnObstacleCleared(Obstacle obstacle)
+    //{
+    //    Debug.Log("Obstacle cleared", obstacle.gameObject);
+    //    try
+    //    {
+    //        activeObstacles.Remove(obstacle.gameObject);
+    //    }
+    //    catch (Exception ex)
+    //    {
+    //        Debug.LogWarning("Obstacle not in active pool");
+    //    }
+
+    //}
 
     private void InitializePools()
     {
@@ -28,6 +53,7 @@ public class ObstacleFactory : IObstacleFactory
             PrewarmPool(type, 10); // Prewarm with 10 objects per type
         }
     }
+
 
     private void PrewarmPool(ObstacleType type, int count)
     {
@@ -71,7 +97,7 @@ public class ObstacleFactory : IObstacleFactory
             renderer.material.color = data.obstacleColor;
         }
 
-        obstacle.SetActive(true);
+        obstacle.SetActive(false);
         activeObstacles.Add(obstacle);
 
         return obstacle;
@@ -178,6 +204,23 @@ public class ObstacleFactory : IObstacleFactory
             }
         }
     }
+
+    public void ActivateLevel()
+    {
+        foreach (var obstacle in activeObstacles)
+        {
+            obstacle.gameObject.SetActive(true);
+        }
+    }
+
+    public void DeactivateLevel()
+    {
+        foreach (var obstacle in activeObstacles)
+        {
+            obstacle.transform.parent = parent;
+            obstacle.gameObject.SetActive(false);
+        }
+    }
 }
 
 public interface IObstacleFactory
@@ -186,6 +229,9 @@ public interface IObstacleFactory
     void DestroyObstacle(GameObject obstacle);
 
     void ClearAllObstacles();
+
+    void ActivateLevel();
+    void DeactivateLevel();
 }
 
 

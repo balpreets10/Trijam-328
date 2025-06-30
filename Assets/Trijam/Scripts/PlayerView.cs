@@ -13,7 +13,7 @@ public class PlayerView : MonoBehaviour
 {
     [Header("Components")]
     private Rigidbody rb;
-    [SerializeField] private GameObject myCamera;
+    [SerializeField] public GameObject myCamera;
 
     [Header("UI Elements")]
     public TextMeshProUGUI currentForce;
@@ -38,10 +38,13 @@ public class PlayerView : MonoBehaviour
     // Property to check if forward movement is enabled
     public bool CanMoveForward => canMoveForward;
 
+    private Vector3 initialPosition;
+
     private void Awake()
     {
         rb = GetComponent<Rigidbody>();
         cachedTransform = transform;
+        initialPosition = transform.localPosition;
     }
 
     public void InitializePlayer(PlayerController controller, PlayerData data)
@@ -50,10 +53,7 @@ public class PlayerView : MonoBehaviour
         this.data = data;
 
         // Initialize UI
-        healthSlider.maxValue = data.maxHealth;
-        healthSlider.value = data.health;
-        currentForce.text = data.baseForce.ToString();
-
+        ResetPlayerView(data);
         // Reset forward movement permission
         canMoveForward = false;
     }
@@ -109,6 +109,8 @@ public class PlayerView : MonoBehaviour
                 break;
         }
     }
+
+
 
     private void HandleMovingState()
     {
@@ -194,11 +196,18 @@ public class PlayerView : MonoBehaviour
     internal void Deactivate()
     {
         gameObject.SetActive(false);
+        wasShiftPressed = false;
     }
 
     internal void Activate()
     {
         gameObject.SetActive(true);
+        transform.localPosition = initialPosition;
+    }
+
+    internal void UpdateCamera(bool activate)
+    {
+        myCamera.SetActive(activate);
     }
 
     // Method to enable forward movement (call this when your timer completes)
@@ -213,10 +222,18 @@ public class PlayerView : MonoBehaviour
         canMoveForward = false;
     }
 
-    internal void UpdateCamera()
+    internal void ResetPlayerView(PlayerData data)
     {
-        OnPlayerCameraActivated?.Invoke(myCamera.GetComponent<Camera>());
+        UpdateForceText(data.baseForce);
+        healthSlider.maxValue = data.maxHealth;
+        UpdateHealthSlider(data.maxHealth);
     }
+
+    //internal void UpdateCamera()
+    //{
+    //    myCamera.SetActive(true);
+    //    OnPlayerCameraActivated?.Invoke(myCamera.GetComponent<Camera>());
+    //}
 
 
 }

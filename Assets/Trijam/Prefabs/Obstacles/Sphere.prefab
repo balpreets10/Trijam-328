@@ -124,9 +124,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   destructionValue: 10
   isDestructible: 1
-  healthReductionValue: 0
+  healthReductionValue: 5
   destructionText: {fileID: 1856041101905580670}
   canvas: {fileID: 4099069833392832270}
+  obstacleCollider: {fileID: 0}
+  obstacleType: 0
 --- !u!1 &1979976602111961784
 GameObject:
   m_ObjectHideFlags: 0

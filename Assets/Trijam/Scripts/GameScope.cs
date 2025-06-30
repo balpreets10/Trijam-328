@@ -27,6 +27,7 @@ public class GameScope : LifetimeScope
 
 
         // Register services
+        builder.Register<IPreferenceService, PreferenceService>(Lifetime.Singleton);
         builder.Register<ILevelDataProvider, LevelDataProvider>(Lifetime.Singleton);
         builder.Register<IObstacleColorProvider, ObstacleColorProvider>(Lifetime.Singleton);
         builder.Register<IObstacleFactory, ObstacleFactory>(Lifetime.Singleton);

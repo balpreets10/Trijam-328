@@ -11,6 +11,9 @@ public class LevelBuilder : ILevelBuilder
 
     public event System.Action<int> OnLevelGenerated;
 
+    private List<ObstacleData> currentLevelObstacles;
+    private Transform levelParent;
+
     public LevelBuilder(
         ILevelDataProvider levelDataProvider,
         ILevelGenerator levelGenerator,
@@ -30,15 +33,27 @@ public class LevelBuilder : ILevelBuilder
         LevelData levelData = levelDataProvider.GetLevelData(levelNumber);
         levelDataProvider.SetCurrentLevelData(levelData);
 
-        List<ObstacleData> obstacles = levelGenerator.GenerateObstacles(levelNumber, levelData);
+        currentLevelObstacles = levelGenerator.GenerateObstacles(levelNumber, levelData);
 
         Transform levelParent = GetLevelParent();
         Transform objectHolder = GetPooledObjectHolder();
-        obstacleSpawner.SpawnObstacles(obstacles, levelParent);
+        obstacleSpawner.SpawnObstacles(currentLevelObstacles, levelParent);
 
         OnLevelGenerated?.Invoke(levelNumber);
 
-        Debug.Log($"Generated level {levelNumber} with {obstacles.Count} obstacles");
+        Debug.Log($"Generated level {levelNumber} with {currentLevelObstacles.Count} obstacles");
+    }
+
+    public void ActivateLevel(int levelNumber)
+    {
+        if (currentLevelObstacles != null)
+        {
+            Debug.Log("Loading Previous Level");
+            obstacleSpawner.SpawnObstacles(currentLevelObstacles, GetLevelParent());
+        }
+        else
+            GenerateLevel(levelNumber);
+
     }
 
     public void ClearLevel()
@@ -48,12 +63,16 @@ public class LevelBuilder : ILevelBuilder
 
     private Transform GetLevelParent()
     {
-        GameObject parentObj = GameObject.Find(config.levelParentName);
-        if (parentObj == null)
+        if (levelParent == null)
         {
-            parentObj = new GameObject(config.levelParentName);
+            GameObject parentObj = GameObject.Find(config.levelParentName);
+            if (parentObj == null)
+            {
+                parentObj = new GameObject(config.levelParentName);
+            }
+            levelParent = parentObj.transform;
         }
-        return parentObj.transform;
+        return levelParent;
     }
     private Transform GetPooledObjectHolder()
     {
@@ -64,6 +83,8 @@ public class LevelBuilder : ILevelBuilder
         }
         return parentObj.transform;
     }
+
+
 
 
 }

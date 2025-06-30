@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 
 using UnityEngine;
+using UnityEngine.Events;
 using UnityEngine.Rendering;
 [Serializable]
 public class PlayerController : IPlayerController
@@ -20,15 +21,33 @@ public class PlayerController : IPlayerController
     private bool isBoostActive = false;
     private bool isShiftHeld = false; // Track shift key state
 
+
+    public static UnityAction OnPlayerDied;
+
     public PlayerController(PlayerView view, PlayerData data)
     {
         this.view = view;
         this.data = data;
         // Initialize health properly
         data.health = data.maxHealth;
-        SetState(PlayerState.Idle);
+        ResetPlayer(data);
         view.InitializePlayer(this, data);
     }
+
+
+    internal void ResetPlayer(PlayerData data)
+    {
+        this.data = data;
+        healthCoroutine = null;
+        forceDecayCoroutine = null;
+        currentAddValue = 0;
+        currentBoostForce = 0f;
+        isBoostActive = false;
+        isShiftHeld = false;
+        view.ResetPlayerView(data);
+        SetState(PlayerState.Idle);
+    }
+
 
     public float GetCurrentForce()
     {
@@ -38,11 +57,24 @@ public class PlayerController : IPlayerController
 
     public void StartPlayer()
     {
-        view.UpdateCamera();
-        view.Activate();
+        view.UpdateCamera(true);
         view.EnableForwardMovement();
         SetState(PlayerState.Moving);
         UpdateForceDisplay();
+    }
+
+    public void Activate()
+    {
+        view.Activate();
+        view.UpdateCamera(false);
+    }
+
+    public void Deactivate()
+    {
+        view.UpdateCamera(false);
+        view.Deactivate();
+        SetState(PlayerState.Idle);
+        ResetPlayer(data);
     }
 
     public void HandleMovement(float horizontalInput, float verticalInput)
@@ -110,7 +142,7 @@ public class PlayerController : IPlayerController
     public void AddForceAndConsumeHealth()
     {
         if (!isShiftHeld) return; // Only add force if shift is being held
-        if (data.health <= 5) return;
+        if (data.health <= 10) return;
 
         StopHealthRegeneration();
         StopForceDecay(); // Stop any ongoing force decay
@@ -243,12 +275,17 @@ public class PlayerController : IPlayerController
     {
         float healthReduction = obstacle.GetHealthReductionValue();
         ConsumeHealth(healthReduction);
-        view.UpdateHealthSlider(-healthReduction, false);
+        //view.UpdateHealthSlider(-healthReduction, false);
     }
 
     private void ConsumeHealth(float amount)
     {
         data.health = Mathf.Max(0, data.health - amount);
+        if (data.health <= 1)
+        {
+            OnPlayerDied.Invoke();
+            return;
+        }
         view.UpdateHealthSlider(-amount, true);
         Debug.Log($"Health consumed: {amount}, Current health: {data.health}");
     }
@@ -282,6 +319,11 @@ public class PlayerController : IPlayerController
     {
         return isShiftHeld;
     }
+
+    public GameObject GetMyCamera()
+    {
+        return view.myCamera;
+    }
 }
 
 public interface IPlayerController
@@ -289,4 +331,22 @@ public interface IPlayerController
     void OnCollisionWithObstacle(IObstacle obstacle);
     void AddForceAndConsumeHealth();
     void HandleMovement(float horizontalInput, float verticalInput);
+
+    void Activate();
+
+    GameObject GetMyCamera();
+}
+
+public interface IPlayerHealth
+{
+    void TakeDamage(float amount);
+    void Heal(float amount);
+}
+
+public interface IPlayerPowerUps
+{
+    void ApplySpeedBoost(float multiplier, float duration);
+    void ApplyStrengthBoost(float multiplier, float duration);
+    void ApplyShield(float duration);
+    void ApplyScoreMultiplier(float multiplier, float duration);
 }
