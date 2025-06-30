@@ -20,7 +20,7 @@ MonoBehaviour:
   difficulty: 0
   playerData:
     baseForce: 11
-    maxHealth: 110
+    maxHealth: 70
     healthToPowerRatio: 2.1
     health: 110
     pushbackDistance: 3
